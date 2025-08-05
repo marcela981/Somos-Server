@@ -3,15 +3,27 @@
  * @author Marcela
  */
 
-const { PredictionServiceClient } = require('@google-cloud/ai-platform');
+const { VertexAI } = require('@google-cloud/ai');
 const { logger } = require('./loggerService');
 const { DatabaseService } = require('./databaseService');
+const { configureGoogleCloud } = require('../config/vercel');
 
 class AIService {
   constructor() {
-    this.client = new PredictionServiceClient({
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+    // Configurar credenciales según el entorno
+    let credentials;
+    if (process.env.NODE_ENV === 'production') {
+      credentials = configureGoogleCloud();
+    } else {
+      credentials = {
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      };
+    }
+
+    this.vertexAI = new VertexAI({
+      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      location: process.env.AI_LOCATION || 'us-central1',
+      credentials: credentials
     });
     
     this.modelName = process.env.AI_MODEL_NAME || 'gemini-pro';

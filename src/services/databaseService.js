@@ -5,13 +5,26 @@
 
 const { Firestore } = require('@google-cloud/firestore');
 const { logger } = require('./loggerService');
+const { initializeFirestore, validateEnvironment } = require('../config/vercel');
 
 class DatabaseService {
   constructor() {
-    this.db = new Firestore({
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-    });
+    // En producción (Vercel), usar credenciales de variables de entorno
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        validateEnvironment();
+        this.db = initializeFirestore();
+      } catch (error) {
+        logger.error('Error initializing Firestore for production', error);
+        throw error;
+      }
+    } else {
+      // En desarrollo, usar archivo de credenciales
+      this.db = new Firestore({
+        projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      });
+    }
     
     this.collections = {
       users: this.db.collection('users'),

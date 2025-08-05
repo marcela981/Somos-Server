@@ -21,7 +21,7 @@ const nutritionRoutes = require('./routes/nutrition');
 
 // Importar middleware
 const { errorHandler } = require('./middleware/errorHandler');
-const { authMiddleware } = require('./middleware/auth');
+const AuthMiddleware = require('./middleware/auth');
 const { logger } = require('./services/loggerService');
 
 const app = express();
@@ -85,11 +85,11 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', authMiddleware, userRoutes);
-app.use('/api/workouts', authMiddleware, workoutRoutes);
-app.use('/api/progress', authMiddleware, progressRoutes);
-app.use('/api/ai', authMiddleware, aiRoutes);
-app.use('/api/nutrition', authMiddleware, nutritionRoutes);
+app.use('/api/users', AuthMiddleware.authenticate, userRoutes);
+app.use('/api/workouts', AuthMiddleware.authenticate, workoutRoutes);
+app.use('/api/progress', AuthMiddleware.authenticate, progressRoutes);
+app.use('/api/ai', AuthMiddleware.authenticate, aiRoutes);
+app.use('/api/nutrition', AuthMiddleware.authenticate, nutritionRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
