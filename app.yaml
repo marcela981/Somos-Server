@@ -1,0 +1,40 @@
+runtime: nodejs18
+
+env_variables:
+  NODE_ENV: "production"
+  PORT: 8080
+
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1
+  max_instances: 10
+  target_concurrent_requests: 100
+
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+
+inbound_services:
+  - warmup
+
+env_variables:
+  GOOGLE_CLOUD_PROJECT_ID: "tu-proyecto-id"
+  JWT_SECRET: "tu-jwt-secret-super-seguro"
+  JWT_EXPIRES_IN: "7d"
+  GOOGLE_AI_API_KEY: "tu-api-key-de-gemini"
+  AI_MODEL_NAME: "gemini-pro"
+  AI_LOCATION: "us-central1"
+  ALLOWED_ORIGINS: "https://tu-dominio.com"
+  LOG_LEVEL: "info"
+  RATE_LIMIT_WINDOW_MS: "900000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  FIRESTORE_COLLECTION_PREFIX: "somos_"
+  STORAGE_BUCKET_NAME: "tu-bucket-name"
+  ENABLE_METRICS: "true"
+  ENABLE_LOGGING: "true" 
