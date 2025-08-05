@@ -56,8 +56,27 @@ function validateEnvironment() {
   }
 }
 
+/**
+ * Verifica que las variables de entorno para IA estén configuradas
+ */
+function validateAIEnvironment() {
+  const requiredVars = [
+    'GOOGLE_AI_API_KEY'
+  ];
+
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    console.warn(`Variables de entorno de IA faltantes: ${missingVars.join(', ')}. El servicio de IA usará respuestas de fallback.`);
+    return false;
+  }
+  
+  return true;
+}
+
 module.exports = {
   configureGoogleCloud,
   initializeFirestore,
-  validateEnvironment
+  validateEnvironment,
+  validateAIEnvironment
 }; 

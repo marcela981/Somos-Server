@@ -3,32 +3,20 @@
  * @author Marcela
  */
 
-const { VertexAI } = require('@google-cloud/ai');
 const { logger } = require('./loggerService');
 const { DatabaseService } = require('./databaseService');
-const { configureGoogleCloud } = require('../config/vercel');
+const { validateAIEnvironment } = require('../config/vercel');
 
 class AIService {
   constructor() {
-    // Configurar credenciales según el entorno
-    let credentials;
-    if (process.env.NODE_ENV === 'production') {
-      credentials = configureGoogleCloud();
-    } else {
-      credentials = {
-        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
-      };
-    }
-
-    this.vertexAI = new VertexAI({
-      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      location: process.env.AI_LOCATION || 'us-central1',
-      credentials: credentials
-    });
-    
     this.modelName = process.env.AI_MODEL_NAME || 'gemini-pro';
-    this.projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
-    this.location = process.env.AI_LOCATION || 'us-central1';
+    this.apiKey = process.env.GOOGLE_AI_API_KEY;
+    
+    // Validar configuración de IA
+    this.aiEnabled = validateAIEnvironment();
+    if (!this.aiEnabled) {
+      logger.warn('AI service will use fallback responses due to missing configuration');
+    }
   }
 
   /**
@@ -311,14 +299,15 @@ class AIService {
    */
   async callAIAPI(prompt) {
     try {
-      // Para esta implementación, usaremos una llamada HTTP directa a la API de Gemini
-      // En producción, podrías usar el SDK oficial de Google AI
-      
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent`, {
+      if (!this.aiEnabled || !this.apiKey) {
+        logger.warn('AI service not properly configured, using fallback response');
+        return this.getFallbackResponse(prompt);
+      }
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.GOOGLE_AI_API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           contents: [{
